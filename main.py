@@ -1361,5 +1361,5 @@ async def echecs(interaction: discord.Interaction, adversaire: discord.Member, c
 # -------------------------------------------------------------------------
 prive = str(os.getenv('PRIVATE_KEY'))
 keep_alive()
-bot.run(TOKEN)
 bot.run(prive)
+
