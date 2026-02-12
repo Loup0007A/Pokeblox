@@ -7,6 +7,22 @@ import os
 import chess
 from discord.ext import tasks
 
+from flask import Flask
+from threading import Thread
+
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is alive!"
+
+def run():
+    app.run(host='0.0.0.0', port=8080)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
 ###########################################################################################################
 # Définition des noms de fichiers
 FILE_MORPION = "morpion_scores.json"
@@ -1344,4 +1360,6 @@ async def echecs(interaction: discord.Interaction, adversaire: discord.Member, c
 #
 # -------------------------------------------------------------------------
 prive = str(os.getenv('PRIVATE_KEY'))
+keep_alive()
+bot.run(TOKEN)
 bot.run(prive)
