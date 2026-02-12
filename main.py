@@ -153,33 +153,37 @@ async def on_ready():
 @bot.tree.command(name="setup_ticket", description="Installe le système de ticket")
 @app_commands.checks.has_permissions(manage_threads=True)
 async def setup_ticket(interaction: discord.Interaction):
+    await interaction.response.defer()
     embed = discord.Embed(
         title="Centre d'assistance",
         description="Besoin d'aide ? Cliquez sur le bouton ci-dessous pour ouvrir un ticket privé.",
         color=discord.Color.blue()
     )
-    await interaction.response.send_message(embed=embed, view=TicketView())
+    await interaction.followup.send(embed=embed, view=TicketView())
 
 @bot.tree.command(name="dice_roll", description="Lance un dé")
 async def dice_roll(interaction: discord.Interaction, nombre_de_faces: int = 6):
+    await interaction.response.defer()
     result = random.randint(1, nombre_de_faces) # Corrected reference
     embed = discord.Embed(
         title="🎲 Lancer de dé",
         description=f"Le résultat est : **{result}**",
         color=discord.Color.purple()
     )
-    await interaction.response.send_message(embed=embed) # Removed TicketView here
+    await interaction.followup.send(embed=embed) # Removed TicketView here
 
 @bot.tree.command(name="ban_pseudo", description="Bannir quelqu'un du serveur avec son pseudo")
 @app_commands.checks.has_permissions(ban_members=True)
 async def banguy(interaction: discord.Interaction, member: discord.Member, reason: str):
+    await interaction.response.defer(ephemeral=True)
     await member.ban()
-    await interaction.response.send_message(f"Vous avez banni {member} avec succès", ephemeral=True)
+    await interaction.followup.send(f"Vous avez banni {member} avec succès")
     await member.send(f"Vous avez été banni du serveur pour la raison : {reason}")
 
 @bot.tree.command(name="unban_pseudo", description="Débannir un utilisateur via son pseudo")
 @app_commands.checks.has_permissions(ban_members=True)
 async def unban_pseudo(interaction: discord.Interaction, name: str):
+    await interaction.response.defer(ephemeral=True)
     # 1. Récupérer la liste des bannissements (c'est une liste d'objets BanEntry)
     bans = [entry async for entry in interaction.guild.bans()]
     
@@ -203,13 +207,14 @@ async def unban_pseudo(interaction: discord.Interaction, name: str):
             unique=True
         )
         await user_to_unban.send(f"Vous avez été débanni, pour revenir sur le serveur utilisez ce lien : {reinvite.url}")
-        await interaction.response.send_message(f"✅ **{user_to_unban.name}** a été débanni.", ephemeral=True)
+        await interaction.followup.send(f"✅ **{user_to_unban.name}** a été débanni.", ephemeral=True)
     else:
-        await interaction.response.send_message(f"❌ Impossible de trouver **{name}** dans la liste des bannis.", ephemeral=True)
+        await interaction.followup.send(f"❌ Impossible de trouver **{name}** dans la liste des bannis.")
 
 @bot.tree.command(name="ban_numéro_de_compte", description="Bannir quelqu'un du serveur via son ID")
 @app_commands.checks.has_permissions(ban_members=True)
 async def banguy(interaction: discord.Interaction, user_id: str, reason: str):
+    await interaction.response.defer(ephemeral=True)
     try:
         # 1. On récupère l'utilisateur via son ID (même s'il n'est pas sur le serveur)
         user = await bot.fetch_user(int(user_id))
@@ -225,16 +230,17 @@ async def banguy(interaction: discord.Interaction, user_id: str, reason: str):
         await interaction.guild.ban(user, reason=reason)
         
         # 4. Confirmation à l'admin
-        await interaction.response.send_message(f"✅ {user.name} (ID: {user_id}) a été banni avec succès.", ephemeral=True)
+        await interaction.followup.send(f"✅ {user.name} (ID: {user_id}) a été banni avec succès.")
 
     except ValueError:
-        await interaction.response.send_message("❌ L'ID fourni n'est pas valide (doit être des chiffres).", ephemeral=True)
+        await interaction.followup.send("❌ L'ID fourni n'est pas valide (doit être des chiffres).")
     except Exception as e:
-        await interaction.response.send_message(f"❌ Une erreur est survenue : {e}", ephemeral=True)
+        await interaction.followup.send(f"❌ Une erreur est survenue : {e}")
 
 @bot.tree.command(name="unban_id", description="Débannir un utilisateur via son ID")
 @app_commands.checks.has_permissions(ban_members=True)
 async def unban_id(interaction: discord.Interaction, user_id: str):
+    await interaction.response.defer(ephemeral=True)
     try:
         # 1. Convertir l'ID et récupérer l'utilisateur
         # Il faut bien mettre (await ...), et on ne met pas .lower ici
@@ -256,14 +262,14 @@ async def unban_id(interaction: discord.Interaction, user_id: str):
         except:
             pass # L'utilisateur a peut-être bloqué ses MPs
 
-        await interaction.response.send_message(f"✅ **{user.name}** a été débanni.", ephemeral=True)
+        await interaction.followup.send(f"✅ **{user.name}** a été débanni.", ephemeral=True)
 
     except ValueError:
-        await interaction.response.send_message("❌ L'ID fourni n'est pas un nombre valide.", ephemeral=True)
+        await interaction.followup.send("❌ L'ID fourni n'est pas un nombre valide.", ephemeral=True)
     except discord.NotFound:
-        await interaction.response.send_message("❌ Cet utilisateur n'est pas dans la liste des bannis.", ephemeral=True)
+        await interaction.followup.send("❌ Cet utilisateur n'est pas dans la liste des bannis.", ephemeral=True)
     except Exception as e:
-        await interaction.response.send_message(f"❌ Erreur : {e}", ephemeral=True)
+        await interaction.followup.send(f"❌ Erreur : {e}", ephemeral=True)
 
 ################################################################################################################
 
@@ -426,14 +432,15 @@ class MorpionGame(discord.ui.View):
 # La commande pour lancer le jeu
 @bot.tree.command(name="morpion_start", description="Lancer un morpion avec l'adversaire de ton choix !")
 async def morpion_start(interaction: discord.Interaction, adversaire: discord.Member):
+    await interaction.response.defer()
     if adversaire.bot or adversaire == interaction.user:
-        return await interaction.response.send_message("Adversaire invalide.", ephemeral=True)
+        return await interaction.followup.send("Adversaire invalide.")
     
     # On crée la vue
     game_view = MorpionGame(interaction.user, adversaire)
     
     # On annonce qui commence grâce à la variable définie dans le __init__
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"**Morpion** : {interaction.user.mention} vs {adversaire.mention}\n"
         f"**{game_view.current_player.mention}** commence !", 
         view=game_view
@@ -453,6 +460,7 @@ def calcul_performance(item):
     app_commands.Choice(name="Morpion", value=1),
 ])
 async def classement(interaction: discord.Interaction,jeu: app_commands.Choice[int]):
+    await interaction.response.defer()
     if jeu.value == 1:
         stats = get_stats("morpion_scores.json")
         titre_de_embed = "Morpion"
@@ -463,9 +471,9 @@ async def classement(interaction: discord.Interaction,jeu: app_commands.Choice[i
         stats = get_stats("chess_stats.json")
         titre_de_embed = "Echecs"
     else : 
-        return await interaction.response.send_message("Ce jeu n'existe pas", ephemeral=True)
+        return await interaction.followup.send("Ce jeu n'existe pas")
     if not stats:
-        return await interaction.response.send_message("Aucune partie n'a encore été jouée !", ephemeral=True)
+        return await interaction.followup.send("Aucune partie n'a encore été jouée !")
 
     # Création de l'Embed (Jolie boîte d'affichage)
     embed = discord.Embed(title=f"🏆 Tableau des Scores - {titre_de_embed}", color=discord.Color.gold())
@@ -523,7 +531,7 @@ async def classement(interaction: discord.Interaction,jeu: app_commands.Choice[i
         )
 
     embed.description = classement_text
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 @bot.tree.command(name="classement_winrate", description="Classement par pourcentage de victoire d'un jeu (min. 10 parties)")
 @app_commands.choices(jeu=[
@@ -532,6 +540,7 @@ async def classement(interaction: discord.Interaction,jeu: app_commands.Choice[i
     app_commands.Choice(name="Morpion", value=1),
 ])
 async def classement_pro(interaction: discord.Interaction, jeu: app_commands.Choice[int]):
+    await interaction.response.defer()
     # 1. Sélection du fichier
     if jeu.value == 1:
         stats = get_stats("morpion_scores.json")
@@ -543,10 +552,10 @@ async def classement_pro(interaction: discord.Interaction, jeu: app_commands.Cho
         stats = get_stats("chess_stats.json")
         titre_de_embed = "Echecs"
     else : 
-        return await interaction.response.send_message("Ce jeu n'existe pas", ephemeral=True)
+        return await interaction.followup.send("Ce jeu n'existe pas")
 
     if not stats:
-        return await interaction.response.send_message("Aucune donnée enregistrée.", ephemeral=True)
+        return await interaction.followup.send("Aucune donnée enregistrée.")
 
     # 2. FILTRAGE : On ne garde que ceux qui ont AU MOINS 10 parties
     # Cela évite qu'un joueur avec 1 victoire et 0 défaite (100%) ne vole la 1ère place
@@ -556,7 +565,7 @@ async def classement_pro(interaction: discord.Interaction, jeu: app_commands.Cho
     ]
 
     if not filtered_stats:
-        return await interaction.response.send_message("Aucun joueur n'a encore atteint les 10 parties requises pour figurer ici.", ephemeral=True)
+        return await interaction.followup.send("Aucun joueur n'a encore atteint les 10 parties requises pour figurer ici.")
 
     # 3. Fonction de tri
     def calculate_sort_metrics(item):
@@ -597,7 +606,7 @@ async def classement_pro(interaction: discord.Interaction, jeu: app_commands.Cho
         )
 
     embed.description += description_text
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 def get_title(wins, total):
     if total == 0: return "Nouveau venu"
@@ -614,6 +623,7 @@ def get_title(wins, total):
     app_commands.Choice(name="Morpion", value=1),
 ])
 async def profil(interaction: discord.Interaction, jeu: app_commands.Choice[int], membre: discord.Member = None):
+    await interaction.response.defer()
     user = membre or interaction.user
     if jeu.value == 1:
         stats = get_stats("morpion_scores.json")
@@ -625,11 +635,11 @@ async def profil(interaction: discord.Interaction, jeu: app_commands.Choice[int]
         stats = get_stats("chess_stats.json")
         titre_de_embed = "Echecs"
     else : 
-        return await interaction.response.send_message("Ce jeu n'existe pas", ephemeral=True)
+        return await interaction.followup.send("Ce jeu n'existe pas")
     uid = str(user.id)
 
     if uid not in stats:
-        return await interaction.response.send_message("Ce joueur n'a pas encore de statistiques.", ephemeral=True)
+        return await interaction.followup.send("Ce joueur n'a pas encore de statistiques.")
 
     data = stats[uid]
     wins, losses, draws = data['wins'], data['losses'], data['draws']
@@ -702,7 +712,7 @@ async def profil(interaction: discord.Interaction, jeu: app_commands.Choice[int]
                     value=f"Actuelle : **{data.get('current_streak', 0)}**\nRecord : **{data.get('max_streak', 0)}**", inline=True)
     
     embed.add_field(name="⚔️ Plus grand Rival", value=rival_text, inline=False)
-    await interaction.response.send_message(embed=embed)
+    await interaction.followup.send(embed=embed)
 ######################################################################################################
 
 import discord
@@ -862,10 +872,11 @@ class Connect4Game(discord.ui.View):
 
 @bot.tree.command(name="puissance4", description="Défier quelqu'un au Puissance 4")
 async def puissance4(interaction: discord.Interaction, adversaire: discord.Member):
+    await interaction.response.defer()
     if adversaire.bot:
-        return await interaction.response.send_message("Les robots sont trop forts au Puissance 4...", ephemeral=True)
+        return await interaction.followup.send("Les robots sont trop forts au Puissance 4...")
     if adversaire == interaction.user:
-        return await interaction.response.send_message("Tu ne peux pas jouer contre toi-même.", ephemeral=True)
+        return await interaction.followup.send("Tu ne peux pas jouer contre toi-même.")
 
     view = Connect4Game(interaction.user, adversaire)
     
@@ -873,7 +884,7 @@ async def puissance4(interaction: discord.Interaction, adversaire: discord.Membe
     first_player = view.player1
     pion = ROUGE # Le joueur 1 a toujours les rouges
     
-    await interaction.response.send_message(
+    await interaction.followup.send(
         f"🔵 **Puissance 4** : {interaction.user.mention} VS {adversaire.mention}\n"
         f"C'est parti ! **{first_player.mention}** commence ({pion})\n\n"
         f"{view.get_board_str()}",
@@ -1314,8 +1325,8 @@ def get_chess_board_image(board, chess_board_color="green"):
 ])
 async def echecs(interaction: discord.Interaction, adversaire: discord.Member, couleur_du_plateau: app_commands.Choice[str]= None, timer: int = 0):
     if adversaire.bot or adversaire == interaction.user:
-        return await interaction.response.send_message("Cible invalide !", ephemeral=True)
-
+        return await interaction.response.send_message("Adversaire invalide !", ephemeral=True)
+    
     await interaction.response.defer()
     
     couleur_plateau = couleur_du_plateau.value if couleur_du_plateau else "green"
@@ -1362,4 +1373,5 @@ async def echecs(interaction: discord.Interaction, adversaire: discord.Member, c
 prive = str(os.getenv('PRIVATE_KEY'))
 keep_alive()
 bot.run(prive)
+
 
