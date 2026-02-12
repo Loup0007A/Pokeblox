@@ -1,0 +1,32 @@
+{
+    "1338310917536088119": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "current_streak": 0,
+        "max_streak": 0,
+        "rivals": {
+            "1376589844884619394": {
+                "name": "lou007a",
+                "wins": 0,
+                "losses": 0,
+                "draws": 1
+            }
+        }
+    },
+    "1376589844884619394": {
+        "wins": 0,
+        "losses": 0,
+        "draws": 1,
+        "current_streak": 0,
+        "max_streak": 0,
+        "rivals": {
+            "1338310917536088119": {
+                "name": "baxole",
+                "wins": 0,
+                "losses": 0,
+                "draws": 1
+            }
+        }
+    }
+}
